@@ -56,3 +56,5 @@ text_file
 # Local test scripts
 backend/test_steam_api.py
 backend/check_db.py
+backend/seed_data.py
+backend/market_discovery.py
