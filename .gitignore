@@ -52,3 +52,7 @@ build/
 .DS_Store
 *.log
 text_file
+
+# Local test scripts
+backend/test_steam_api.py
+backend/check_db.py
