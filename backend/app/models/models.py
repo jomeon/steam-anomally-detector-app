@@ -8,31 +8,32 @@ class Item(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     market_hash_name = Column(String, unique=True, index=True, nullable=False)
-    app_id = Column(Integer, default=730, nullable=False) # Domyślnie CS2 (730)
+    app_id = Column(Integer, default=730, nullable=False) 
     icon_url = Column(String, nullable=True)
     
-    # --- NOWE POLA DLA ANALIZY TRENDÓW ---
-    # np. "The Cobblestone Collection", "Operation Bravo Case"
+    # Metadata for trend analysis
     collection_name = Column(String, index=True, nullable=True) 
-    # np. "Sticker", "Sniper Rifle", "Container"
     item_type = Column(String, index=True, nullable=True) 
 
-    # Relacje - jeden przedmiot ma wiele wpisów cen i wiele wyników analiz
+    # Relationships
     price_history = relationship("PriceHistory", back_populates="item", cascade="all, delete-orphan")
     analysis_results = relationship("AnalysisResult", back_populates="item", cascade="all, delete-orphan")
 
 class PriceHistory(Base):
     """
-    Docelowo ta tabela stanie się hypertable w TimescaleDB, 
-    co jest idealne dla szeregów czasowych (cen).
+    Time-series table for market data.
+    Designed for TimescaleDB hypertable compatibility.
     """
     __tablename__ = "price_history"
 
-    # W TimescaleDB klucz główny musi zawierać kolumnę partycjonowania (timestamp)
+    # Primary key must include the partitioning column (timestamp) for TimescaleDB
     timestamp = Column(DateTime(timezone=True), primary_key=True, default=lambda: datetime.now(timezone.utc))
     item_id = Column(Integer, ForeignKey("items.id"), primary_key=True)
-    price = Column(Float, nullable=False)
-    volume = Column(Integer, nullable=False)
+    
+    # Split price fields to match Steam priceoverview API
+    lowest_price = Column(Float, nullable=True)
+    median_price = Column(Float, nullable=True)
+    volume = Column(Integer, nullable=False, default=0)
 
     item = relationship("Item", back_populates="price_history")
 
@@ -43,11 +44,11 @@ class AnalysisResult(Base):
     item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
-    # Wynik z modelu ML (Isolation Forest)
+    # ML detection results
     is_anomaly = Column(Boolean, default=False)
-    risk_score = Column(Float, nullable=False) # np. od 0.0 (bezpiecznie) do 100.0 (bańka/manipulacja)
+    risk_score = Column(Float, nullable=False)
     
-    # Wynik z modelu AI (Gemini Agent)
+    # AI Agent verification report
     ai_report = Column(Text, nullable=True)
 
     item = relationship("Item", back_populates="analysis_results")
