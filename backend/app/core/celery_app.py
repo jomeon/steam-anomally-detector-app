@@ -24,30 +24,46 @@ celery_app.conf.update(
     beat_schedule_filename="/tmp/celerybeat-schedule"
 )
 
+async def fetch_prices_with_delay(items):
+    """
+    Asynchronous runner that processes items one by one with a mandatory delay
+    to respect Steam API rate limits.
+    """
+    from app.services.collector import collect_item_data
+    
+    # 3.5 seconds delay allows processing ~1000 items per hour safely
+    DELAY_BETWEEN_REQUESTS = 3.5 
+    
+    for item in items:
+        await collect_item_data(
+            app_id=item.app_id,
+            market_hash_name=item.market_hash_name,
+            item_type=item.item_type,
+            collection_name=item.collection_name
+        )
+        await asyncio.sleep(DELAY_BETWEEN_REQUESTS)
+
 @celery_app.task
 def scheduled_price_collection():
     """
-    Iterates through all items in the database and updates their prices.
+    Triggered every hour. Retrieves all items and starts the delayed fetching process.
     """
     from app.db.database import SessionLocal
     from app.models.models import Item
-    from app.services.collector import collect_item_data
 
     db: Session = SessionLocal()
     try:
-        # Get all items currently tracked in the system
         items = db.query(Item).all()
+        print(f"Starting price collection for {len(items)} items. Estimated time: {len(items) * 3.5 / 60:.2f} minutes.")
         
-        for item in items:
-            # Run the collector for each item found
-            asyncio.run(collect_item_data(
-                app_id=item.app_id,
-                market_hash_name=item.market_hash_name,
-                item_type=item.item_type,
-                collection_name=item.collection_name
-            ))
+        # Run the async loop once for the entire batch
+        asyncio.run(fetch_prices_with_delay(items))
+        
+    except Exception as e:
+        print(f"Error in scheduled task: {e}")
     finally:
         db.close()
+        print("Price collection cycle finished.")
 
 # Schedule configuration
 celery_app.conf.beat_schedule = {
