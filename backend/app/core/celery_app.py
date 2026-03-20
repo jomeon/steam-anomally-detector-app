@@ -50,14 +50,24 @@ def scheduled_price_collection():
     """
     from app.db.database import SessionLocal
     from app.models.models import Item
+    from app.services.ml_engine import AnomalyDetector
 
     db: Session = SessionLocal()
+    detector = AnomalyDetector()
     try:
         items = db.query(Item).all()
         print(f"Starting price collection for {len(items)} items. Estimated time: {len(items) * 3.5 / 60:.2f} minutes.")
-        
-        # Run the async loop once for the entire batch
+
         asyncio.run(fetch_prices_with_delay(items))
+        print("Price collection cycle finished. Starting ML Analysis...")
+        
+        analyzed_count = 0
+        for item in items:
+            success = detector.analyze_item(item.id, db)
+            if success:
+                analyzed_count += 1
+                
+        print(f"ML Analysis complete. Processed {analyzed_count} items with sufficient data history.")
         
     except Exception as e:
         print(f"Error in scheduled task: {e}")
