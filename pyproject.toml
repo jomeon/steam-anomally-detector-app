@@ -1,0 +1,14 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# Foldery do ignorowania
+exclude = [".venv", ".git", "__pycache__", "alembic"]
+
+[tool.ruff.lint]
+# E - błędy (pycodestyle), F - błędy logiczne (Pyflakes), I - sortowanie importów (isort)
+select = ["E", "F", "I"]
+ignore = []
+
+[tool.ruff.format]
+# Używamy podwójnych cudzysłowów (jak w Blacku)
+quote-style = "double"

@@ -1,4 +1,6 @@
-# Python
+# ========================
+# Python & Środowisko
+# ========================
 __pycache__/
 *.py[cod]
 *$py.class
@@ -7,15 +9,46 @@ venv/
 env/
 .env
 
+# ========================
+# Narzędzia (Lintery, Testy, Typowanie)
+# ========================
+# Cache dla Ruffa
+.ruff_cache/
+# Cache dla Mypy
+.mypy_cache/
+# Testy (pytest)
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ========================
+# Data Science & Machine Learning
+# ======================== 
+data/
+datasets/
+*.csv
+*.pkl
+*.joblib
+*.h5
+
+# ========================
+# Celery 
+# ========================
+celerybeat-schedule
+celerybeat.pid
+
+# ========================
 # Frontend / Node
+# ========================
 node_modules/
 dist/
 build/
 
-# IDE / OS
+# ========================
+# IDE / OS / Inne
+# ========================
 .vscode/
 .idea/
 .DS_Store
 *.log
-
-text_file 
+text_file
