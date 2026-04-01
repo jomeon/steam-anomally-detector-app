@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Date
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from app.db.database import Base
+from sqlalchemy.dialects.postgresql import JSONB
 
 class Item(Base):
     __tablename__ = "items"
@@ -49,6 +50,6 @@ class AnalysisResult(Base):
     risk_score = Column(Float, nullable=False)
     
     # AI Agent verification report
-    ai_report = Column(Text, nullable=True)
+    ai_report = Column(JSONB, nullable=True)
 
     item = relationship("Item", back_populates="analysis_results")

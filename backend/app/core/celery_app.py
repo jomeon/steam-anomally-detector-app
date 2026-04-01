@@ -49,11 +49,13 @@ def scheduled_price_collection():
     Triggered every hour. Retrieves all items and starts the delayed fetching process.
     """
     from app.db.database import SessionLocal
-    from app.models.models import Item
+    from app.models.models import Item, AnalysisResult
     from app.services.ml_engine import AnomalyDetector
+    from app.services.llm_agent import MarketAnalystAgent
 
     db: Session = SessionLocal()
     detector = AnomalyDetector()
+    ai_agent = MarketAnalystAgent()
     try:
         items = db.query(Item).all()
         print(f"Starting price collection for {len(items)} items. Estimated time: {len(items) * 3.5 / 60:.2f} minutes.")
@@ -62,12 +64,22 @@ def scheduled_price_collection():
         print("Price collection cycle finished. Starting ML Analysis...")
         
         analyzed_count = 0
+        anomalies_found = []
         for item in items:
             success = detector.analyze_item(item.id, db)
             if success:
                 analyzed_count += 1
+                # anomally check 
+                result = db.query(AnalysisResult).filter(AnalysisResult.item_id == item.id).first()
+                if result and result.is_anomaly:
+                    anomalies_found.append(item.id)
                 
         print(f"ML Analysis complete. Processed {analyzed_count} items with sufficient data history.")
+
+        if anomalies_found:
+            print(f"Found {len(anomalies_found)} anomalies! Triggering AI Agent...")
+            for item_id in anomalies_found:
+                ai_agent.generate_report(item_id, db)
         
     except Exception as e:
         print(f"Error in scheduled task: {e}")
@@ -82,3 +94,4 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(minute=0), # Runs every hour at :00
     },
 }
+

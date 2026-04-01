@@ -73,7 +73,8 @@ def get_anomalies(db: Session = Depends(get_db)):
             "item_id": item.id,
             "name": item.market_hash_name,
             "risk_score": analysis.risk_score,
-            "detected_at": analysis.created_at
+            "detected_at": analysis.created_at,
+            "ai_report": analysis.ai_report
         }
         for analysis, item in anomalies
     ]
