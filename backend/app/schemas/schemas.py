@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+from typing import Dict, Any
 
 # --- ITEM SCHEMAS ---
 class ItemBase(BaseModel):
@@ -37,3 +38,4 @@ class AnomalyResponse(BaseModel):
     name: str
     risk_score: float
     detected_at: datetime
+    ai_report: Optional[Dict[str, Any]] = None

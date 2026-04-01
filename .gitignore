@@ -58,3 +58,22 @@ backend/test_steam_api.py
 backend/check_db.py
 backend/seed_data.py
 backend/market_discovery.py
+backend/trigger.py
+
+
+# Next.js Build Output
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel/
+
+
+postgres_data/
+pgdata/
+redis_data/
+
+# Docker Logs
+*.log
+docker-compose.override.yml
+
+.gpt-pilot/
